@@ -6,14 +6,14 @@ import matplotlib.pyplot as plt
 from deap import algorithms, base, creator, tools, gp
 
 
-def make_prim_set():
+def make_prim_set(independent_variables):
     def protectedDiv(left, right):
         try:
             return left / right
         except ZeroDivisionError:
             return 1
 
-    primset = gp.PrimitiveSet("MAIN", 1)
+    primset = gp.PrimitiveSet("MAIN", independent_variables)
     primset.addPrimitive(operator.add, 2)
     primset.addPrimitive(operator.sub, 2)
     primset.addPrimitive(operator.mul, 2)
@@ -22,5 +22,4 @@ def make_prim_set():
     primset.addPrimitive(math.cos, 1)
     primset.addPrimitive(math.sin, 1)
     primset.addEphemeralConstant("rand101", lambda: random.randint(-1, 1))
-    primset.renameArguments(ARG0='x')
-
+    return primset
