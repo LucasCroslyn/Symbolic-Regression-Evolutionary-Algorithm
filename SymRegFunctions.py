@@ -33,7 +33,7 @@ def make_prim_set(num_independent_variables):
 
 
 def make_creator(primset):
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0, -2.0))
+    creator.create("FitnessMin", base.Fitness, weights=(-5.0, -1.0))
     creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
 
@@ -44,12 +44,12 @@ def make_toolbox(primset, independent_variables, dependent_variables):
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("compile", gp.compile, pset=primset)
     toolbox.register("evaluate", eval_symbolic_regression, x_points=independent_variables, y_points=dependent_variables, toolbox=toolbox)
-    toolbox.register("select", tools.selTournament, tournsize=4)
+    toolbox.register("select", tools.selNSGA2)
     toolbox.register("mate", gp.cxOnePoint)
-    toolbox.register("expr_mutation", gp.genFull, min_=0, max_=2)  # Should go over this one
+    toolbox.register("expr_mutation", gp.genFull, min_=0, max_=2)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mutation, pset=primset)
-    toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=15))
-    toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=15))
+    toolbox.decorate("mate", gp.staticLimit(key=len, max_value=50))
+    toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=50))
     return toolbox
 
 
@@ -60,14 +60,11 @@ def eval_symbolic_regression(individual, x_points, y_points, toolbox):
 
 
 def statistics():
-    stats_fit = tools.Statistics(lambda ind: ind.fitness.values[0])
-    stats_size = tools.Statistics(len)
-    mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
-    mstats.register("Avg", np.mean)
-    mstats.register("Std", np.std)
-    mstats.register("Min", np.min)
-    mstats.register("Max", np.max)
-    return mstats
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
+    stats.register("Std", np.std, axis=0)
+    stats.register("Min", np.min, axis=0)
+    stats.register("Max", np.max, axis=0)
+    return stats
 
 
 def symReg(independent, dependent):
@@ -75,13 +72,14 @@ def symReg(independent, dependent):
     make_creator(primset)
     toolbox = make_toolbox(primset, independent, dependent)
     test_indiv = toolbox.individual()
-    mstats = statistics()
+    stats = statistics()
     print(test_indiv)
     pop = toolbox.population(n=200)
-    hof = tools.HallOfFame(1)
-    pop, log = algorithms.eaSimple(pop, toolbox, 0.3, 0.05, 200, stats=mstats, halloffame=hof, verbose=True)
+    hof = tools.ParetoFront()
+    pop, log = algorithms.eaSimple(pop, toolbox, 0.3, 0.05, 200, stats=stats, halloffame=hof, verbose=True)
     best = hof.items[0]
     print(best)
+    print(len(best))
     nodes, edges, labels = gp.graph(best)
     g = nx.Graph()
     g.add_nodes_from(nodes)
@@ -95,8 +93,6 @@ def symReg(independent, dependent):
     bestFunction = toolbox.compile(expr=best)
     for i in range(len(independent)):
         best_y.append(bestFunction(independent[i])[0])
-    print(best_y)
-
-    plt.plot(independent, best_y, color='orange', linewidth=0.5)
+    plt.scatter(independent, best_y, color='orange', s=5)
     plt.scatter(independent, dependent, s=5)
     plt.show()
