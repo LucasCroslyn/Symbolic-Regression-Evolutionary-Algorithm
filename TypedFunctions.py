@@ -28,10 +28,7 @@ def if_then_else(input, output1, output2):
 
 
 def make_prim_set_typed():
-    primset = gp.PrimitiveSetTyped("MAIN", itertools.repeat(float, 4), str, "IN")
-    primset.addTerminal("Iris-setosa", str)
-    primset.addTerminal("Iris-versicolor", str)
-    primset.addTerminal("Iris-virginica", str)
+    primset = gp.PrimitiveSetTyped("MAIN", itertools.repeat(float, 4), bool, "IN")
 
     primset.addPrimitive(operator.add, [float, float], float)
     primset.addPrimitive(operator.sub, [float, float], float)
@@ -45,7 +42,7 @@ def make_prim_set_typed():
     primset.addPrimitive(operator.lt, [float, float], bool)
     primset.addPrimitive(operator.gt, [float, float], bool)
 
-    primset.addPrimitive(if_then_else, [bool, str, str], str)
+    primset.addPrimitive(if_then_else, [bool, float, float], float)
 
     primset.addEphemeralConstant("randfloat", lambda: round(random.uniform(0, 10), 1), float)
     primset.addTerminal(False, bool)
@@ -58,26 +55,33 @@ def make_creator_typed(primset):
     creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax)
 
 
-def make_toolbox_typed(primset, data_set):
+def make_toolbox_typed(primset, data_set, target_flower):
     toolbox = base.Toolbox()
-    toolbox.register("expr", gp.genHalfAndHalf, pset=primset, min_=1, max_=2)
+    toolbox.register("expr", gp.genHalfAndHalf, pset=primset, min_=1, max_=3)
     toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("compile", gp.compile, pset=primset)
-    toolbox.register("evaluate", eval_typed, toolbox=toolbox, data=data_set)
-    toolbox.register("select", tools.selTournament, tournsize=3)
+    toolbox.register("evaluate", eval_typed, toolbox=toolbox, data=data_set, target=target_flower)
+    toolbox.register("select", tools.selTournament, tournsize=20)
     toolbox.register("mate", gp.cxOnePoint)
     toolbox.register("expr_mutation", gp.genFull, min_=0, max_=2)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mutation, pset=primset)
-    toolbox.decorate("mate", gp.staticLimit(key=len, max_value=50))
-    toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=50))
+    toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter('height'), max_value=5))
+    toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter('height'), max_value=5))
     return toolbox
 
 
-def eval_typed(individual, toolbox, data):
+def eval_typed(individual, toolbox, data, target):
     func = toolbox.compile(expr=individual)
-    result = sum(str(func(*list(flower)[:4])) == str(list(flower)[4].decode('UTF-8')) for flower in list(data))
-    return result,
+    fitness = 0
+    for flower in data:
+        if bool(func(*list(flower)[:4])):
+            if str(list(flower)[4].decode('UTF-8')) == target:
+                fitness += 1
+        else:
+            if str(list(flower)[4].decode('UTF-8')) != target:
+                fitness += 1
+    return fitness,
 
 
 def statistics_typed():
@@ -88,14 +92,14 @@ def statistics_typed():
     return stats
 
 
-def typed_reg(data):
+def typed_reg(data, target_flower):
     primset = make_prim_set_typed()
     make_creator_typed(primset)
-    toolbox = make_toolbox_typed(primset, data)
+    toolbox = make_toolbox_typed(primset, data, target_flower)
     stats = statistics_typed()
-    pop = toolbox.population(n=100)
+    pop = toolbox.population(n=200)
     hof = tools.HallOfFame(1)
-    pop, log = algorithms.eaSimple(pop, toolbox, 0.7, 0.05, 20, stats=stats, halloffame=hof, verbose=True)
+    pop, log = algorithms.eaSimple(pop, toolbox, 0.5, 0.1, 150, stats=stats, halloffame=hof, verbose=True)
     best = hof.items[0]
     print(best)
     print(len(best))
