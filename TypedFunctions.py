@@ -87,4 +87,5 @@ def typed_reg(data):
     best = hof.items[0]
     print(best)
     CommonFunctions.graph(best)
+    return best, toolbox
 
