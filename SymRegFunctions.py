@@ -21,7 +21,7 @@ def make_prim_set(num_independent_variables):
     primset.addPrimitive(operator.neg, 1)
     primset.addPrimitive(math.cos, 1)
     primset.addPrimitive(math.sin, 1)
-    p
+    primset.addEphemeralConstant(name="randInt", ephemeral=partial(random.randint, -10, 10))
     return primset
 
 
@@ -31,7 +31,7 @@ def make_creator(primset):
 
 def eval_symbolic_regression(individual, x_points, y_points, toolbox):
     callable_function = toolbox.compile(expr=individual)
-    test = ((callable_function(x_points[i]) - y_points[i])**2 for i in range(len(x_points)))
+    test = ((callable_function(*x_points[i]) - y_points[i])**2 for i in range(len(x_points)))
     return  math.fsum(test) / len(x_points), 
 
 def make_toolbox(primset, independent_variables, dependent_variables):
