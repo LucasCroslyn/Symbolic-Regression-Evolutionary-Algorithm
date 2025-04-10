@@ -7,11 +7,23 @@ from deap import gp
 from deap import tools
 
 def protectedDiv(left, right):
+    '''
+    A function that is made to be added to the Tree's set of possible nodes. 
+
+    :param left: The numerator for the division
+    :param right: The denominator for the division
+    :return: The numerator divided by the denominator (if denominator is 0 make sure to just return 1 so no error)
+    '''
     if right == 0:
         return 1
     return left/right
 
 def statistics():
+    '''
+    Creating the stats the will be tracked over the entire genetic algorithm. Tracks both the fitness value and also the size of the trees.
+
+    :return: Returns the stats object to use in the genetic algorithm
+    '''
     stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
     stats_size = tools.Statistics(len)
     stats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
@@ -140,8 +152,14 @@ def hierarchy_pos(G, root=None, width=1., vert_gap = 0.2, vert_loc = 0, leaf_vs_
         pos[node]= (pos[node][0]*width/xmax, pos[node][1])
     return pos
 
-def graph(best):
-    nodes, edges, labels = gp.graph(best)
+def graph(tree):
+    '''
+    Creates a graph of the given tree structure
+
+    :param tree: The tree that is being graphed
+    '''
+
+    nodes, edges, labels = gp.graph(tree)
     g = nx.Graph()
     g.add_nodes_from(nodes)
     g.add_edges_from(edges)
