@@ -2,10 +2,10 @@
 
 This project was doing a Symbolic Regression Tree and a Classification Tree using evolutionary algorithms.
 
-- The main file that shows the algorithms running is in the main.ipynb Jupyter Notebook.
-- The SymRegFunctions.py file contains the functions for the Symbolic Regression Tree Genetic Algorithm.
-- The TypedFunctions.py file contains the functions for the Classification Tree Genetic Algorithm (called TypedFunctions because the nodes for the Tree have pre-defined types).
-- The CommonFunctions.py file contains functions that are the exact same and are used between both SymRegFunctions.py and TypedFunctions.py
+- The main file that shows the algorithms running is in the [main.ipynb]() Jupyter Notebook.
+- The [SymRegFunctions.py]() file contains the functions for the Symbolic Regression Tree Genetic Algorithm.
+- The [TypedFunctions.py]() file contains the functions for the Classification Tree Genetic Algorithm (called TypedFunctions because the nodes for the Tree have pre-defined types).
+- The [CommonFunctions.py]() file contains functions that are the exact same and are used between both [SymRegFunctions.py]() and [TypedFunctions.py]()
 - The datasets used for the projects are the .csv files (d1-7.csv are for Symbolic Regression, iris.csv is for the classification).
 - The images used for a writeup (only the Symbolic Regression data, the classification only got working after the writeup was done) are displayed below.
 
